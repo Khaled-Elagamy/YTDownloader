@@ -5,10 +5,10 @@ from PIL import Image, ImageTk  # Import Pillow modules
 from pytube import YouTube 
 from pytube.exceptions import RegexMatchError
 import os 
+import re
 
 import requests
 import threading
-import string
 
 
 # Global variables to control download status
@@ -20,12 +20,16 @@ thumbnail_image = None  # Store the thumbnail image
 pause_event = threading.Event()
 video_info_thread = None
 
+
+def sanitize_filename(title):
+    # Allow letters, digits, and a few special characters
+    # Replace characters that are not allowed in filenames with an underscore
+    return re.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', title)
+
 def start_download():
     global video
     try:
-        title_text = video.title
-        valid_characters = "-_.() %s%s" % (string.ascii_letters, string.digits)
-        title_text = ''.join(char if char in valid_characters else '_' for char in title_text)
+        title_text = sanitize_filename(video.title)
 
         save_path = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")],initialfile=title_text)
         if not save_path:
